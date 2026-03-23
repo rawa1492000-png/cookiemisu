@@ -1,31 +1,27 @@
 const express = require("express");
-const mysql = require("mysql");
+const mysql = require("mysql2");
 const cors = require("cors");
 
 const app = express();
 
 app.use(cors());
 app.use(express.json());
-app.use(express.static(__dirname));
+app.use(express.static("public"));
 
 // اتصال الداتا بيس
 const db = mysql.createConnection({
-  host: "localhost",
-  user: "root",
-  password: "",
-  database: "cookiemisu"
+  host: process.env.DB_HOST,
+  user: process.env.DB_USER,
+  password: process.env.DB_PASS,
+  database: process.env.DB_NAME
 });
 
 db.connect(err => {
-  if (err) {
-    console.log("DB Error:", err);
-  } else {
-    console.log("Connected to DB");
-  }
+  if (err) console.log("DB Error:", err);
+  else console.log("Connected to DB");
 });
 
-
-// 🔥 حفظ الطلب
+// حفظ الطلب
 app.post("/order", (req, res) => {
 
   const { name, phone, note, cart } = req.body;
@@ -69,25 +65,20 @@ app.post("/order", (req, res) => {
 
 });
 
-
-// 🔥 عرض الطلبات
+// عرض الطلبات
 app.get("/orders", (req, res) => {
 
   db.query("SELECT * FROM orders ORDER BY created_at DESC", (err, result) => {
 
-    if (err) {
-      console.log(err);
-      res.status(500).send("Error fetching");
-    } else {
-      res.json(result);
-    }
+    if (err) return res.status(500).send("Error fetching");
+
+    res.json(result);
 
   });
 
 });
 
-
-// 🔥 تحديث الحالة (Done)
+// تحديث الحالة
 app.put("/order/:id", (req, res) => {
 
   const id = req.params.id;
@@ -96,21 +87,21 @@ app.put("/order/:id", (req, res) => {
     "UPDATE orders SET status='done' WHERE id=?",
     [id],
     (err) => {
+      if (err) return res.status(500).send("Error updating");
 
-      if (err) {
-        console.log(err);
-        res.status(500).send("Error updating");
-      } else {
-        res.send("updated");
-      }
-
+      res.send("updated");
     }
   );
 
 });
 
-
-// تشغيل السيرفر (خليه آخر شي)
-app.listen(3000, () => {
-  console.log("Server running on http://localhost:3000");
+// تشغيل السيرفر
+app.listen(process.env.PORT || 3000, () => {
+  console.log("Server running");
+});
+mysql.createConnection({
+  host: process.env.DB_HOST,
+  user: process.env.DB_USER,
+  password: process.env.DB_PASS,
+  database: process.env.DB_NAME
 });
