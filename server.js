@@ -6,7 +6,9 @@ const app = express();
 
 app.use(cors());
 app.use(express.json());
-app.use(express.static("public"));
+
+// 👇 هذا أهم تعديل
+app.use(express.static(__dirname));
 
 // اتصال الداتا بيس
 const db = mysql.createConnection({
@@ -98,10 +100,4 @@ app.put("/order/:id", (req, res) => {
 // تشغيل السيرفر
 app.listen(process.env.PORT || 3000, () => {
   console.log("Server running");
-});
-mysql.createConnection({
-  host: process.env.DB_HOST,
-  user: process.env.DB_USER,
-  password: process.env.DB_PASS,
-  database: process.env.DB_NAME
 });
